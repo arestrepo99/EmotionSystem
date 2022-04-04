@@ -1,2 +1,2 @@
-from selection import forwardFeatureSelection
+from package.selection import forwardFeatureSelection
 import unittest
