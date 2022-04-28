@@ -1,11 +1,6 @@
+from __future__ import print_function
 from sklearn import manifold
 import umap
-from Data import Dataset
-
-class Cluster():
-    def __init__(self, algorithm, dataset):
-        self.algorithm = algorithm
-        self.dataset = dataset
 
 
 
@@ -48,13 +43,20 @@ class UMAP():
             The reducer can be fit with a dataset, either supervised or unsupervised
             This trained reducer can be then used to transform new data
         '''
-        self.reducer = umap.UMAP(**(UMAP.parameters.update(kwargs)))
+        self.parameters = self.parameters.copy()
+        self.parameters.update(kwargs)
+        self.reducer = umap.UMAP(**(self.parameters))
+        self.supervised = kwargs.get('supervised', False)
     
-    def fit(self, dataset, supervised = False):
-        if supervised:
-            self.embedding = self.reducer.fit_transform(dataset.features, dataset.labels)
+    def fit(self, dataset):
+        if not self.supervised:
+            self.embedding = self.reducer.fit_transform(dataset.X)
         else:
-            self.embedding = self.reducer.fit_transform(dataset.features)
+            self.embedding = self.reducer.fit_transform(dataset.X, dataset.y)
         
     def transform(self, dataset):
-        return self.reducer.transform(dataset.features)
+        if not self.supervised:
+            return self.reducer.transform(dataset.X)
+        else:
+            return self.reducer.transform(dataset.X, dataset.y)
+        

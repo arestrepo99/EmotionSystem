@@ -28,20 +28,24 @@ class DecisionTree(SupervisedAlgorithm):
     epsilon = 0.1
     delta = 0.1
 
-    def __init__(self):
-        self.clf = DecisionTreeClassifier()
+    def __init__(self, *args,  **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        self.clf = DecisionTreeClassifier(*args, **kwargs)
 
     def pac(self, n):
         '''
             k: depth of tree
             n: number of features
-            
         '''
         epsilon = self.__class__.epsilon
         delta = self.__class__.delta
 
-        k = self.clf.max_depth
-        # Returns minimum number of observations
-        return np.log(2)/(2*epsilon**2)*\
-            ( (2^k-1)* (1+np.log2(n)) + 1 + np.log(delta**-1) )
+        if 'max_depth' in self.kwargs:
+            k = self.kwargs['max_depth']
+            # Returns minimum number of observations
+            return np.log(2)/(2*epsilon**2)*\
+                ( (2^k-1)* (1+np.log2(n)) + 1 + np.log(delta**-1) )
+        else:
+            return 0
 

@@ -2,3 +2,6 @@ Berlin Database Of Emotional Speech/*
 ECG R/*
 *.pyc
 .ipynb_checkpoints/*
+.datasetdwt/*
+ecg_70.txt
+Rplots.pdf

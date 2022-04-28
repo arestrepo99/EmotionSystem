@@ -1,4 +1,4 @@
-#Emotion System
+# Emotion System
 
 Additions:
 
@@ -10,9 +10,15 @@ Additions:
 - Added UMAP class to UnsupervisedLearning.py
 
 ## Kernels
-- Added automatic level calulation to DWT
+- DWT can now be run withought parameters
+- Added AnalysisECG to kernels
 
 ## Dataset
-- Added features and labels method to dataset
-- Added one-hot-encoding option to dataset labels function
-- Added selection variable to dataset used in features function
+- Dataset objects are not passed to and returned by package algoritms. 
+
+## Visualization
+- Added a visualization class that caries out a umap embedding and plots classes in this space.
+
+## Clustering
+- Kmeans and AffinityPropagation need revision 
+
