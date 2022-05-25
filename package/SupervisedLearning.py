@@ -9,22 +9,21 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 import numpy as np
 
+from sklearn.metrics import roc_curve
+import matplotlib.pyplot as plt
 
-class SupervisedAlgorithm:
-    def fit(self, X, y):
-        m,n = X.shape
-        if self.pac(n)>m:
-            raise ValueError("Not enough observations to fit model")
-        self.clf = self.clf.fit(X, y)
+class ModelCompare():
+    def __init__(self, models):
+        self.models = models
 
-    def predict(self, X):
-        return self.clf.predict(X)
+    def plotROC(self, X_test, y_test):
+        # plotting roc curves
+        plt.figure(figsize=(10, 10))
+        for ind, model in enumerate(self.models):
+            fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
+            plt.plot(fpr, tpr, label='model ' + str(ind))
 
-    def score(self, X, y):
-        return self.clf.score(X, y)
-
-
-class DecisionTree(SupervisedAlgorithm):
+class DecisionTree():
     epsilon = 0.1
     delta = 0.1
 
@@ -48,4 +47,4 @@ class DecisionTree(SupervisedAlgorithm):
                 ( (2^k-1)* (1+np.log2(n)) + 1 + np.log(delta**-1) )
         else:
             return 0
-
+        

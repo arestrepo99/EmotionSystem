@@ -1,8 +1,7 @@
 from sklearn.model_selection import train_test_split
 from scipy.io import wavfile
-import pickle
 import pandas as pd
-
+import os
 
 class TemporalData():
     def __init__(self, data, samplerate):
@@ -31,7 +30,7 @@ class Audio(TemporalData):
     def __init__(self, filename):
         samplerate, data = \
                 wavfile.read(filename)
-        super().__init__(data, samplerate)    
+        super().__init__(data, samplerate)
 
 
 class Dataset():
@@ -43,9 +42,9 @@ class Dataset():
                 (for visualization and comparison with other clases)
 
         '''
-        self.X = X
-        self.y = y
-        self.classes = classes
+        self.X = pd.DataFrame(X)
+        self.y = pd.DataFrame(y)
+        self.classes = pd.DataFrame(classes)
 
     def split(self, test_size = 0.2):
         '''
@@ -53,16 +52,44 @@ class Dataset():
         '''
         return train_test_split(self.X, self.y, test_size=test_size)
     
-    def save(self, path='.dataset/'):
+    def save(self, name='data'):
+        path = '.dataset/'
+        # Check if path exists if not make directory
+        if not os.path.exists(path):
+            os.makedirs(path)
+        # Save dataframes
+        path = '.dataset/'+name+'/'
+        # Check if path exists if not make directory
+        if not os.path.exists(path):
+            os.makedirs(path)
+        
         self.X.to_csv(path+'X.csv')
-        self.y.to_csv(path+'y.csv')
-        self.classes.to_csv(path+'classes.csv')
+        if self.X is not None:
+            self.y.to_csv(path+'y.csv')
+        if self.classes is not None:
+            self.classes.to_csv(path+'classes.csv')
 
-    def load(path='.dataset/'):
+    def load(name='data'):
+        path = '.dataset/'+name+'/'
         X = pd.read_csv(path+'X.csv', index_col=0)
-        y = pd.read_csv(path+'y.csv', index_col=0)
-        classes = pd.read_csv(path+'classes.csv', index_col=0)
+        if os.path.exists(path+'y.csv'):
+            y = pd.read_csv(path+'y.csv', index_col=0)
+        if os.path.exists(path+'classes.csv'):
+            classes = pd.read_csv(path+'classes.csv', index_col=0)
         return Dataset(X, y, classes)
+    
+    def __str__(self):
+        out = f'''
+            Dataset
+            X: {self.X.shape}
+            y: {self.y.shape}
+            classes: {self.classes.shape}
+        ''' 
+        return out
+    
+    def __repr__(self):
+        return self.__str__()
+        
 
 # class Dataset(pd.DataFrame):
 #     def __init__(self, data, window, 

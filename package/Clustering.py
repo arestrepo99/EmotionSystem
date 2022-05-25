@@ -1,34 +1,15 @@
-from sklearn.cluster import KMeans as skKMeans
-from sklearn.cluster import AffinityPropagation as skAffinityPropagation
-
+from package.Data import Dataset
+import pandas as pd
+from tqdm import tqdm
 
 class Cluster():
-    pass
-
-class KMeans(Cluster):
-
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-        self.clf = skKMeans(*args, **kwargs)
-
-    def fit(self, X):
-        if 'n_clusters' not in self.kwargs:
-            self.kwargs['n_clusters'] = self.number_of_clusters(X)
-            self.clf.n_clusters = self.kwargs['n_clusters']
-        self.clf.fit(X)
-        self.labels = self.clf.labels_
-
-    def number_of_clusters(self, X):
-        return 2
+    def __init__(self, algorithms):
+        self.algorithms = algorithms
     
-class AffinityPropagation(Cluster):
-    pass
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-        self.clf = skAffinityPropagation(*args, **kwargs)
-    
-    def fit(self, X):
-        self.clf.fit(X)
-        self.labels = self.clf.labels_
+    def fit(self, dataset):
+        classes = {}
+        for algorithm in tqdm(self.algorithms):
+            res = algorithm.fit(dataset.X)
+            # Get algorithm name
+            classes[algorithm.__class__.__name__] = res.labels_
+        return Dataset(dataset.X, dataset.y, pd.DataFrame(classes))

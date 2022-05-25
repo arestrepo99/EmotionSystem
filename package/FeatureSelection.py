@@ -1,10 +1,13 @@
 from keyword import kwlist
+from unittest.mock import NonCallableMagicMock
 import numpy as np
 import matplotlib.pyplot as plt
 from ast import literal_eval
-from package.SupervisedLearning import DecisionTree
-from package.data import Dataset
-   
+from sklearn.tree import DecisionTreeClassifier
+from package.Data import Dataset
+import pandas as pd
+from scipy import stats
+
 def early_stopping(n, verbose = True):
     def early_stopping(*args, **kwargs):
         # Getting the list of losses
@@ -24,21 +27,22 @@ class plot_loss:
     def __call__(self, *args, **kwargs):
         loss = kwargs['loss']
         self.ax.clear()
-        self.ax.set_xlabel('Iteration (And number of features added)')
+        self.ax.set_xlabel('Iteration')
         self.ax.set_ylabel('Loss')
         self.ax.plot(loss)
         self.fig.show()
         plt.pause(0.1)
 
 class ForwardFeatureSelection():
-    
-    def __init__(self, model= DecisionTree(), callbacks = [early_stopping(5), plot_loss()], maxIter = 100):
+    def __init__(self, model= DecisionTreeClassifier(), callbacks = None, maxIter = 100):
         '''
             model : object with scikit learn API (fit and score) - default DecisionTree
             callbacks : [callables]] (optional) - List of callables to be called after each iteration.
             maxIter : int (optional) - maximum number of iterations
         '''
         self.model = model
+        if callbacks is None:
+            callbacks = [early_stopping(5), plot_loss()]
         self.callbacks = callbacks
         self.maxIter = maxIter
     
@@ -58,6 +62,7 @@ class ForwardFeatureSelection():
             for callback in self.callbacks:
                 output = callback(selection = self.selection, loss = self.loss)
                 if output == 'early_stopping':
+                    self.selection = self.selection[:np.argmax(self.loss)]
                     return Dataset(dataset.X[self.selection], dataset.y, dataset.classes)
         return  Dataset(dataset.X[self.selection], dataset.y, dataset.classes)
     
@@ -66,7 +71,33 @@ class ForwardFeatureSelection():
 
 
 
+class tStudent():
+    def __init__(self, threshold = 0.9):
+        self.threshold = threshold
+        
+    def fit(self, dataset):
+        labels = dataset.y.iloc[:,0].unique()
+        self.biClassTest = pd.DataFrame(columns = dataset.X.columns)
+        for label1 in labels:
+            for label2 in labels:
+                if label1 != label2:
+                    testResultsPerFeature = []
+                    for feature in dataset.X.columns:
+                        testResultsPerFeature.append(
+                            stats.ttest_ind(
+                                dataset.X[feature][dataset.y.iloc[:,0] == label1],
+                                dataset.X[feature][dataset.y.iloc[:,0] == label2],
+                                equal_var = False
+                                )[1] < 0.05)
+                    self.biClassTest.loc[str(label1)+'/'+str(label2)] = testResultsPerFeature
+        
+        mean = self.biClassTest.mean(axis=0)
+        self.selection = list(mean.loc[mean >= self.threshold].index)
+        return Dataset(dataset.X[self.selection], dataset.y, dataset.classes)
 
-
-
-
+    def transform(self, dataset, threshold= None):
+        if threshold is None:
+            threshold = self.threshold
+        mean = self.biClassTest.mean(axis=0)
+        self.selection = list(mean.loc[mean >= threshold].index)
+        return Dataset(dataset.X[self.selection], dataset.y, dataset.classes)

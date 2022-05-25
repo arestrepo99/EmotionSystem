@@ -4,7 +4,7 @@ import numpy as np
 import pywt as wt
 import scipy.stats as stats
 from tqdm import tqdm
-from package.data import Dataset
+from package.Data import Dataset
 
 
 class Processor:
@@ -171,4 +171,5 @@ class AnalysisECG():
                 index.append(obs)
             except:
                 print(f'Warning: observation {obs} failed')
-        return pd.DataFrame(features, columns = [feature['obelezje'] for feature in out], index = index)
+        X = pd.DataFrame(features, columns = [feature['obelezje'] for feature in out], index = index)
+        return Dataset(X, dataset.y, dataset.classes)
