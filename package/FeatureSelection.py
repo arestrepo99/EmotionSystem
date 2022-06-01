@@ -95,9 +95,12 @@ class tStudent():
         self.selection = list(mean.loc[mean >= self.threshold].index)
         return Dataset(dataset.X[self.selection], dataset.y, dataset.classes)
 
-    def transform(self, dataset, threshold= None):
-        if threshold is None:
-            threshold = self.threshold
-        mean = self.biClassTest.mean(axis=0)
-        self.selection = list(mean.loc[mean >= threshold].index)
+    # def transform(self, dataset, threshold= None):
+    #     if threshold is None:
+    #         threshold = self.threshold
+    #     mean = self.biClassTest.mean(axis=0)
+    #     self.selection = list(mean.loc[mean >= threshold].index)
+    #     return Dataset(dataset.X[self.selection], dataset.y, dataset.classes)
+    
+    def transform(self, dataset):
         return Dataset(dataset.X[self.selection], dataset.y, dataset.classes)

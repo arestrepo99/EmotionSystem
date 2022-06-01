@@ -1,5 +1,6 @@
 from sklearn.model_selection import train_test_split
 from scipy.io import wavfile
+from scipy.signal import resample
 import pandas as pd
 import os
 
@@ -24,8 +25,15 @@ class TemporalData():
         windows = []
         for i in range(n_windows):
             windows.append(self.data[i*overlap_size:i*overlap_size+window_size])
-        return windows, n_windows
-
+        return windows
+    
+    def resample(self, new_samplerate):
+        '''
+            resample the data to new_samplerate
+        '''
+        self.data =  resample(self.data, len(self.data)*2**14//self.samplerate)
+        self.samplerate = new_samplerate
+    
 class Audio(TemporalData):
     def __init__(self, filename):
         samplerate, data = \
@@ -77,13 +85,22 @@ class Dataset():
         if os.path.exists(path+'classes.csv'):
             classes = pd.read_csv(path+'classes.csv', index_col=0)
         return Dataset(X, y, classes)
-    
+
     def __str__(self):
         out = f'''
-            Dataset
-            X: {self.X.shape}
-            y: {self.y.shape}
-            classes: {self.classes.shape}
+Dataset X: {self.X.shape},  y: {self.y.shape}, classes: {self.classes.shape}
+
+____X:_________
+{self.X.head()}
+--SHAPE--: {self.X.shape} 
+
+____y:_________
+{self.y.head()}
+--SHAPE--: {self.y.shape}
+
+____classes:____
+{self.classes.head()}
+--SHAPE--: {self.classes.shape}
         ''' 
         return out
     

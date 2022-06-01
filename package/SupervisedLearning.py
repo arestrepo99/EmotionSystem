@@ -47,4 +47,4 @@ class DecisionTree():
                 ( (2^k-1)* (1+np.log2(n)) + 1 + np.log(delta**-1) )
         else:
             return 0
-        
+

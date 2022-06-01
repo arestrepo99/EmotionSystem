@@ -40,6 +40,29 @@ class DWT():
         
         self.levels = levels
 
+    def featureNames(self):
+        featureNames = []
+        for wavelet in self.wavelets:
+            for level in range(self.levels):
+                for featureFunction in self.featureFunctions:
+                    featureNames.append(f'{wavelet}-{level}-cA-{featureFunction}')
+                    featureNames.append(f'{wavelet}-{level}-cD-{featureFunction}')
+        return featureNames
+
+    def decompose(self, observation):
+        assert self.levels is not None, 'number of levels to decompose not set'
+        observationFeatures = []
+        for wavelet in self.wavelets:
+            cA = observation
+            for level in range(self.levels):
+                for _,featureFunction in self.featureFunctions.items():
+                    #Wavelet decomposition for current level
+                    (cA, cD) = wt.dwt(cA, wavelet)
+                    #Appending Features to Dictionary
+                    observationFeatures.append(featureFunction(cA))
+                    observationFeatures.append(featureFunction(cD))
+        return observationFeatures
+
     def fit(self, dataset):
         '''
             dataset (Dataset) : Dataset to be processed
@@ -48,32 +71,16 @@ class DWT():
 
         n,m = data.shape
         if self.levels is None:
+            # Setting levels to maximum level posible
             self.levels = int(np.log2(m))
         
-        featureNames = []
-        for wavelet in self.wavelets:
-            for level in range(self.levels):
-                for featureFunction in self.featureFunctions:
-                    featureNames.append(f'{wavelet}-{level}-cA-{featureFunction}')
-                    featureNames.append(f'{wavelet}-{level}-cD-{featureFunction}')
-
         features = []
         #Iterating Over Observations
-
         # Can be paralelize for improved speed in future
         for observation in tqdm(data.values):
-            observationFeatures = []
-            for wavelet in self.wavelets:
-                cA = observation
-                for level in range(self.levels):
-                    for featureFunctionName,featureFunction in self.featureFunctions.items():
-                        #Wavelet decomposition for current level
-                        (cA, cD) = wt.dwt(cA, wavelet)
-                        #Appending Features to Dictionary
-                        observationFeatures.append(featureFunction(cA))
-                        observationFeatures.append(featureFunction(cD))
-            features.append(observationFeatures)            
-        return Dataset(pd.DataFrame(features, columns=featureNames), y= dataset.y, classes = dataset.classes)
+            features.append(self.decompose(observation))        
+
+        return Dataset(pd.DataFrame(features, columns=self.featureNames()), y= dataset.y, classes = dataset.classes)
     
     def transform(self, dataset):
         return self.fit(dataset)
